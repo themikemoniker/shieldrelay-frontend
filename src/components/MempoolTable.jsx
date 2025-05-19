@@ -1,10 +1,21 @@
+import { useEffect, useState } from 'react';
+
 export default function MempoolTable() {
-  const mempools = [
-    { name: "Rebar Shield", feerate: 18, hashrate: 12 },
-    { name: "Ocean", feerate: 20, hashrate: 15 },
-    { name: "Eden", feerate: 22, hashrate: 10 },
-    { name: "Submarine", feerate: 24, hashrate: 8 }
-  ];
+  const [mempools, setMempools] = useState([]);
+
+  useEffect(() => {
+    const fetchMempools = async () => {
+      try {
+        const res = await fetch("http://localhost:8000/mempools/");
+        const data = await res.json();
+        setMempools(data.mempools || []);
+      } catch (err) {
+        console.error("Error fetching mempool data:", err);
+      }
+    };
+
+    fetchMempools();
+  }, []);
 
   return (
     <div className="bg-white rounded-lg p-4 shadow">
@@ -13,17 +24,21 @@ export default function MempoolTable() {
         <thead className="bg-gray-100">
           <tr>
             <th className="p-2">Mempool</th>
+            <th className="p-2">Fee Tier</th>
             <th className="p-2">Feerate (sat/vB)</th>
             <th className="p-2">Hashrate (%)</th>
           </tr>
         </thead>
         <tbody>
-          {mempools.map((m, i) => (
-            <tr key={i} className="border-t">
-              <td className="p-2">{m.name}</td>
-              <td className="p-2">{m.feerate}</td>
-              <td className="p-2">{m.hashrate}</td>
-            </tr>
+          {mempools.map((pool, i) => (
+            pool.fees?.map((fee, j) => (
+              <tr key={`${i}-${j}`} className="border-t">
+                <td className="p-2">{pool.name}</td>
+                <td className="p-2">{fee.label || "-"}</td>
+                <td className="p-2">{fee.feerate}</td>
+                <td className="p-2">{fee.estimated_hashrate ?? pool.hashrate ?? "-"}</td>
+              </tr>
+            ))
           ))}
         </tbody>
       </table>
