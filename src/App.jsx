@@ -38,11 +38,16 @@ export default function App() {
               The fee must be in a <strong>single output</strong> — do not split it across multiple outputs.
             </li>
             <li>
-              Calculate the fee as: <code className="font-mono bg-white px-1">transaction size (vbytes) × feerate (sat/vB)</code>
+              <strong>Do not rely on an implied miner fee.</strong> Only the output to the Rebar fee address is required and counted.
             </li>
             <li>
-              Your total implied feerate must meet or exceed the Rebar tier you are targeting. The current minimum is{' '}
-              <strong>{rebarInfo.fees?.[0]?.feerate} sat/vB</strong>.
+              Calculate the fee as:{' '}
+              <code className="font-mono bg-white px-1">
+                transaction size × fee rate
+              </code>
+            </li>
+            <li>
+              Minimum fee rate: <strong>{rebarInfo.fees?.[0]?.feerate} sat/vB</strong>
             </li>
           </ul>
         </div>
@@ -55,7 +60,7 @@ export default function App() {
         <TxSubmitForm />
       </div>
 
-      <Layer2Selector />
+      {/* <Layer2Selector /> */}
     </div>
   );
 }

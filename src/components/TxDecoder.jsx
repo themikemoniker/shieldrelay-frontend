@@ -51,15 +51,17 @@ export default function TxDecoder() {
     if (!decoded || !rebarInfo) return null;
 
     const vsize = decoded.vsize || 0;
-    const fee = decoded.fees || 0;
-    const feerate = vsize ? (fee / vsize).toFixed(2) : 0;
-    const minRequired = rebarInfo.fees?.[0]?.feerate || 0;
+    const outputs = decoded.outputs || [];
+    const feeTiers = rebarInfo.fees || [];
+    const rebarAddress = rebarInfo.payment.p2wpkh;
+    const minFeerate = feeTiers[0]?.feerate || 0;
+    const minRequiredFee = vsize * minFeerate;
 
-    const paysRebar = decoded.outputs?.some((o) =>
-      o.addresses?.includes(rebarInfo.payment.p2wpkh)
+    const rebarOutputs = outputs.filter(
+      (o) => o.addresses?.includes(rebarAddress)
     );
-
-    const meetsFeerate = parseFloat(feerate) >= minRequired;
+    const rebarFee = rebarOutputs.reduce((sum, o) => sum + o.value, 0);
+    const hasFee = rebarFee >= minRequiredFee;
 
     return (
       <div className="mt-4 p-3 bg-gray-100 rounded text-sm space-y-2">
@@ -67,16 +69,11 @@ export default function TxDecoder() {
           Transaction size: <strong>{vsize} vbytes</strong>
         </div>
         <div>
-          Implied feerate: <strong>{feerate} sat/vB</strong>{' '}
-          {renderCheck(meetsFeerate)}{' '}
-          <span className={meetsFeerate ? 'text-green-700' : 'text-red-600'}>
-            {meetsFeerate ? 'sufficient fee' : `below required ${minRequired}`}
-          </span>
-        </div>
-        <div>
-          Rebar fee output present: {renderCheck(paysRebar)}{' '}
-          <span className={paysRebar ? 'text-green-700' : 'text-red-600'}>
-            {paysRebar ? '✓ Fee detected' : '✗ Missing Rebar fee output'}
+          Rebar fee output: {renderCheck(rebarOutputs.length > 0)}{' '}
+          <span className={hasFee ? 'text-green-700' : 'text-red-600'}>
+            {hasFee
+              ? `✓ ${rebarFee} sats provided`
+              : `✗ Only ${rebarFee} sats — required ${minRequiredFee}`}
           </span>
         </div>
       </div>
@@ -106,9 +103,6 @@ export default function TxDecoder() {
         <div className="mt-4 space-y-3">
           <div>
             <span className="font-semibold">TXID:</span> {decoded.hash}
-          </div>
-          <div>
-            <span className="font-semibold">Fee:</span> {decoded.fees} sats
           </div>
           <div>
             <span className="font-semibold">Inputs:</span>
