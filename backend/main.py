@@ -10,8 +10,9 @@ app = FastAPI(title="ShieldRelay API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173",
-        "https://shieldrelay-frontend.onrender.com"  # ← your frontend Render domain
-    ],  # Vite dev server
+        "https://shieldrelay-frontend.onrender.com",
+        "https://shield-transaction-checker.onrender.com"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
